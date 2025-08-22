@@ -1,0 +1,78 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy Node.js app to Azure Web App - omniplex31
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: read #This is required for actions/checkout
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js version
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+
+      - name: npm install and build
+        run: |
+          npm ci
+          npm run build
+      
+      - name: Prepare deployment package
+        run: |
+          # Create deployment directory
+          mkdir deployment
+          # Copy only necessary files
+          copy package.json deployment\
+          copy package-lock.json deployment\
+          copy next.config.mjs deployment\
+          # Copy built application
+          xcopy .next deployment\.next /E /I
+          xcopy public deployment\public /E /I /Y 2>nul || echo "No public folder"
+          xcopy src deployment\src /E /I /Y 2>nul || echo "No src folder"
+          xcopy app deployment\app /E /I /Y 2>nul || echo "No app folder"
+          xcopy pages deployment\pages /E /I /Y 2>nul || echo "No pages folder"
+      
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-app
+          path: deployment
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: node-app
+      
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_96490C7A10D9427FB444DDE5F4E7E495 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_D1A9AF4D114B43209828E2D38F0931FA }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_E06D57C7D7C6477BBF7926B761F83348 }}
+
+      - name: 'Deploy to Azure Web App'
+        uses: azure/webapps-deploy@v3
+        id: deploy-to-webapp
+        with:
+          app-name: 'omniplex31'
+          slot-name: 'Production'
+          package: .
