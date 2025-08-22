@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id") || "none";
-    console.log(id);
+    // console.log(id);
 
     let chatThread;
     let question = "";

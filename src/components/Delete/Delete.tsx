@@ -66,7 +66,7 @@ const Delete = (props: Props) => {
 
       await deleteDoc(userRef);
 
-      console.log("User data deleted successfully");
+      // console.log("User data deleted successfully");
     } catch (error) {
       console.error("Error deleting user data:", error);
       throw error;

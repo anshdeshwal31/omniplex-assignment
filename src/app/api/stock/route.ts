@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
 const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
 
+
 const fetchJSON = async (url: string) => {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Failed to fetch data from ${url}`);
@@ -17,6 +18,9 @@ type ChartDataPoint = {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const symbol = searchParams.get("symbol");
+
+  if(!FINNHUB_API_KEY)throw new Error("Couldn't find FINNHUB_API_KEY")
+  if(!ALPHA_VANTAGE_API_KEY)throw new Error("Couldn't find ALPHA_VANTAGE_API_KEY")
 
   if (!symbol) {
     return new NextResponse(JSON.stringify({ error: "Symbol is required" }), {

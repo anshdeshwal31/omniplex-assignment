@@ -1,4 +1,5 @@
 export const handleMode = async (text: string) => {
+  console.log("inside handleMode")
   try {
     const response = await fetch("/api/tools", {
       method: "POST",
@@ -17,7 +18,9 @@ export const handleMode = async (text: string) => {
       ]),
     });
     const data = await response.json();
-    console.log("Mode and arguments:", data);
+    // console.log("Mode and arguments:", data);
+    console.log("data from handleMode",data)
+
     return { mode: data.mode, arg: data.arg };
   } catch (error) {
     console.error("Error fetching mode and arguments:", error);

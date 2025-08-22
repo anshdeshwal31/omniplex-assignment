@@ -17,6 +17,8 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const city = searchParams.get("city");
 
+  if(!OPENWEATHERMAP_API_KEY) throw new Error("OPENWEATHER_API_KEY  not found")
+  
   if (!city || typeof city !== "string") {
     return new NextResponse(
       JSON.stringify({

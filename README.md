@@ -38,7 +38,7 @@ yarn
 
 ```bash
 BING_API_KEY=
-OPENAI_API_KEY=
+GOOGLE_API_KEY=
 
 OPENWEATHERMAP_API_KEY=
 ALPHA_VANTAGE_API_KEY=
@@ -79,7 +79,7 @@ ANTHROPIC_API_KEY=******
 
 ```ts
 import Anthropic from "@anthropic-ai/sdk";
-import { OpenAIStream, StreamingTextResponse } from "ai";
+import { GoogleGenerativeAIStream, StreamingTextResponse } from "ai";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
     messages: messages,
   });
 
-  const stream = OpenAIStream(response);
+  const stream = GoogleGenerativeAIStream(response);
   return new StreamingTextResponse(stream);
 }
 ```
@@ -154,7 +154,7 @@ export const MODELS = [
 
 ### Services
 
-- LLM: OpenAI
+- LLM: Google Gemini
 - Search API: Bing
 - Weather API: OpenWeatherMap
 - Stocks API: Alpha Vantage & Finnhub

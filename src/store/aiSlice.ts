@@ -12,7 +12,7 @@ interface AIState {
 }
 
 const initialState: AIState = {
-  model: "gpt-3.5-turbo",
+  model: "gemini-1.5-flash",
   temperature: 1,
   maxLength: 512,
   topP: 1,

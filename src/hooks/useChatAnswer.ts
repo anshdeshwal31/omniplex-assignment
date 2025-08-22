@@ -70,14 +70,50 @@ const useChatAnswer = ({
     const newController = new AbortController();
     setController(newController);
 
-    let messages = getInitialMessages(chat, data);
+    // Build conversation context including previous messages
+    const messages: Message[] = [];
+    
+    // Add system message if it exists
+    const systemMessage = chatThread.messages.find(
+      (message) => message.role === "system"
+    );
+    if (systemMessage) {
+      messages.push(systemMessage);
+    }
+    
+    // Add previous chat exchanges to maintain context
+    chatThread.chats.slice(0, -1).forEach((prevChat) => {
+      messages.push({ role: "user", content: prevChat.question });
+      if (prevChat.answer) {
+        messages.push({ role: "assistant", content: prevChat.answer });
+      }
+    });
+    
+    // Add custom prompt if exists
+    if (ai.customPrompt.length > 0) {
+      messages.push({
+        role: "system",
+        content: ai.customPrompt,
+      });
+    }
+
+    // Get the current message based on chat mode
+    const currentMessages = getInitialMessages(chat, data);
+    // If it's a chat mode, skip the system message from getInitialMessages since we already have it
+    const messagesToAdd = chat.mode === "chat" && systemMessage 
+      ? currentMessages.filter(msg => msg.role !== "system")
+      : currentMessages;
+    
+    messages.push(...messagesToAdd);
+
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages,
-          model: chat?.mode === "image" ? "gpt-4o" : ai.model,
+          // Fix: Use Gemini models instead of OpenAI models
+          model: chat?.mode === "image" ? "gemini-1.5-flash" : "gemini-1.5-flash",
           temperature: ai.temperature,
           max_tokens: ai.maxLength,
           top_p: ai.topP,
@@ -89,6 +125,7 @@ const useChatAnswer = ({
 
       if (!response.ok) {
         setError("Something went wrong. Please try again later.");
+        // console.log("response inside handleAnswer inside useChatAnswer",response)
         setErrorFunction(() => handleAnswer.bind(null, chat, data));
         return;
       }
@@ -126,6 +163,7 @@ const useChatAnswer = ({
         handleSave();
       }
     } catch (error) {
+      // console.log("error inside handleAnswer inside useChatAnswer",error)
       setIsLoading(false);
       setIsStreaming(false);
       setIsCompleted(true);
@@ -187,7 +225,8 @@ const useChatAnswer = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages,
-          model: lastChat.mode === "image" ? "gpt-4o" : ai.model,
+          // Fix: Use Gemini models instead of OpenAI models
+          model: lastChat.mode === "image" ? "gemini-1.5-flash" : ai.model,
           temperature: ai.temperature,
           max_tokens: ai.maxLength,
           top_p: ai.topP,
@@ -199,6 +238,7 @@ const useChatAnswer = ({
 
       if (!response.ok) {
         setError("Something went wrong. Please try again later.");
+        // console.log("response inside handleRewrite inside useChatAnswer",response)
         setErrorFunction(() => handleRewrite);
         return;
       }
@@ -243,6 +283,7 @@ const useChatAnswer = ({
         handleSave();
       }
     } catch (error) {
+      // console.log("error inside handleRewrite inside useChatAnswer",error)
       setIsLoading(false);
       setIsStreaming(false);
       setIsCompleted(true);
@@ -258,6 +299,7 @@ const useChatAnswer = ({
   };
 
   const handleCancel = () => {
+    // console.log("inside handleCancel inside useChatAnswer")
     if (controller) {
       controller.abort();
       setIsStreaming(false);

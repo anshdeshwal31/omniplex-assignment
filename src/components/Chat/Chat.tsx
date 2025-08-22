@@ -11,6 +11,7 @@ import ChatFetch from "../ChatFetch/ChatFetch";
 import { useDispatch } from "react-redux";
 import {
   addChat,
+  addMessage,
   updateDictionary,
   updateMode,
   updateSearch,
@@ -32,6 +33,7 @@ type Props = {
 
 const Chat = (props: Props) => {
   const { id } = props;
+  // console.log("insde Chat component");
   const dispatch = useDispatch();
 
   const { chatThread, isFetching } = useChatFetch(id);
@@ -81,7 +83,7 @@ const Chat = (props: Props) => {
   //         try {
   //           parsedArg = arg ? JSON.parse(arg) : {};
   //         } catch (parseError) {
-  //           console.error("Damn determining mode and arguments:", error);
+  //           console.log("Damn determining mode and arguments:", error);
   //         }
 
   //         dispatch(
@@ -179,6 +181,7 @@ const Chat = (props: Props) => {
 
   useEffect(() => {
     const processChatThread = async () => {
+      // console.log("inside processChatThread");
       if (chatThread && chatThread.chats.length > 0) {
         const lastChatIndex = chatThread.chats.length - 1;
         const lastChat = chatThread.chats[lastChatIndex];
@@ -192,7 +195,7 @@ const Chat = (props: Props) => {
               try {
                 parsedArg = arg ? JSON.parse(arg) : {};
               } catch (parseError) {
-                console.error("Damn determining mode and arguments:", error);
+                console.log("Damn determining mode and arguments:", parseError);
               }
 
               dispatch(
@@ -204,7 +207,7 @@ const Chat = (props: Props) => {
                 })
               );
             } catch (error) {
-              console.error("Error determining mode and arguments:", error);
+              // console.log("Error determining mode and arguments:", error);
               setError("Error determining mode and arguments");
               setErrorFunction(() => handleMode.bind(null, lastChat.question));
             }
@@ -213,9 +216,12 @@ const Chat = (props: Props) => {
 
           if (lastChat.mode === "weather" && !lastChat.weatherResults) {
             try {
-              console.log("lastChat.arg.location", lastChat.arg.location);
+              // console.log("lastChat.arg.location", lastChat.arg.location);
+              // console.log("calling handleWeather");
               await handleWeather(lastChat.arg.location, lastChatIndex);
             } catch (error) {
+              console.log(
+                "Error fetching or processing weather data:",error)
               setError("Error fetching or processing search results");
               setErrorFunction(() =>
                 handleWeather.bind(null, lastChat.arg.location, lastChatIndex)
@@ -226,9 +232,11 @@ const Chat = (props: Props) => {
 
           if (lastChat.mode === "stock" && !lastChat.stocksResults) {
             try {
-              console.log("lastChat.arg.symbol", lastChat.arg.symbol);
+              // console.log("lastChat.arg.symbol", lastChat.arg.symbol);
+              // console.log("calling handleStock");
               await handleStock(lastChat.arg.symbol, lastChatIndex);
             } catch (error) {
+              // console.log("Error fetching or processing stock data:",error)
               setError("Error fetching or processing search results");
               setErrorFunction(() =>
                 handleStock.bind(null, lastChat.arg.symbol, lastChatIndex)
@@ -239,9 +247,12 @@ const Chat = (props: Props) => {
 
           if (lastChat.mode === "dictionary" && !lastChat.dictionaryResults) {
             try {
-              console.log("lastChat.arg.word", lastChat.arg.symbol);
+              // console.log("lastChat.arg.word", lastChat.arg.word);
+              // console.log("calling handleDictionary");
               await handleDictionary(lastChat.arg.word, lastChatIndex);
             } catch (error) {
+              console.log(
+                "Error fetching or processing dictionary data:",error)
               setError("Error fetching or processing dictionary results");
               setErrorFunction(() =>
                 handleDictionary.bind(null, lastChat.arg.word, lastChatIndex)
@@ -252,8 +263,10 @@ const Chat = (props: Props) => {
 
           if (lastChat.mode === "search" && !lastChat.searchResults) {
             try {
+              // console.log("calling handleSearch");
               await handleSearch(lastChatIndex);
             } catch (error) {
+              // console.log("Error fetching or processing search results:",error)
               setError("Error fetching or processing search results");
               setErrorFunction(() => handleSearch.bind(null, lastChatIndex));
               return;
@@ -265,9 +278,10 @@ const Chat = (props: Props) => {
             !lastChat.answer
           ) {
             try {
+              // console.log("calling handleAnswer");
               await handleAnswer(lastChat);
             } catch (error) {
-              console.error("Error generating answer:", error);
+              console.log("Error generating answer:", error);
             }
           } else if (lastChat.answer) {
             setIsLoading(false);
@@ -293,7 +307,7 @@ const Chat = (props: Props) => {
     const chat = chatThread?.chats[chatIndex];
     setIsLoading(true);
     setIsCompleted(false);
-
+    // console.log("inside handleSearch");
     try {
       if (chat?.mode === "search") {
         const response = await fetch(
@@ -307,9 +321,9 @@ const Chat = (props: Props) => {
           setErrorFunction(() => handleSearch.bind(null, chatIndex));
           return;
         }
-
+        // console.log("successfull request inside handleSearch");
         const searchData = await response.json();
-
+        // console.log("Response inside handleSearch", searchData);
         dispatch(
           updateSearch({
             threadId: id,
@@ -342,7 +356,7 @@ const Chat = (props: Props) => {
         throw new Error("Mode is not search");
       }
     } catch (error) {
-      console.error("Error fetching or processing search results:", error);
+      console.log("Error fetching or processing search results:", error);
       setError("Error fetching or processing search results");
       setErrorFunction(() => handleSearch.bind(null, chatIndex));
     }
@@ -352,6 +366,7 @@ const Chat = (props: Props) => {
     const chat = chatThread?.chats[chatIndex];
     setIsLoading(true);
     setIsCompleted(false);
+    // console.log("inside handleWeather");
 
     try {
       if (chat?.mode === "weather") {
@@ -363,8 +378,10 @@ const Chat = (props: Props) => {
           throw new Error("Failed to fetch weather data");
         }
 
+        // console.log("successfull request inside handleWeather");
         const weatherData = await response.json();
-        console.log("Weather Data:", weatherData);
+        // console.log("Response inside handleWeather", weatherData);
+        // console.log("Weather Data:", weatherData);
 
         dispatch(
           updateWeather({
@@ -379,7 +396,7 @@ const Chat = (props: Props) => {
         throw new Error("Mode is not weather");
       }
     } catch (error) {
-      console.error("Error fetching or processing weather data:", error);
+      console.log("Error fetching or processing weather data:", error);
       setError("Error fetching or processing weather data");
       setErrorFunction(() => handleWeather.bind(null, location, chatIndex));
     }
@@ -389,6 +406,8 @@ const Chat = (props: Props) => {
     const chat = chatThread?.chats[chatIndex];
     setIsLoading(true);
     setIsCompleted(false);
+    // console.log("inside handleStock");
+
 
     try {
       if (chat?.mode === "stock") {
@@ -396,12 +415,14 @@ const Chat = (props: Props) => {
           `/api/stock?symbol=${encodeURIComponent(stock)}`
         );
 
+        // console.log("successfull request inside handleStock");
         if (!response.ok) {
           throw new Error("Failed to fetch weather data");
         }
 
         const stocksData = await response.json();
-        console.log("stock Data:", stocksData);
+        // console.log("Response inside handleStock", stocksData);
+        // console.log("stock Data:", stocksData);
 
         dispatch(
           updateStock({
@@ -416,7 +437,7 @@ const Chat = (props: Props) => {
         throw new Error("Mode is not stock");
       }
     } catch (error) {
-      console.error("Error fetching or processing stock data:", error);
+      console.log("Error fetching or processing stock data:", error);
       setError("Error fetching or processing stock data");
       setErrorFunction(() => handleStock.bind(null, stock, chatIndex));
     }
@@ -427,6 +448,7 @@ const Chat = (props: Props) => {
     setIsLoading(true);
     setIsCompleted(false);
 
+    // console.log("inside handleDictionary");
     try {
       if (chat?.mode === "dictionary") {
         const response = await fetch(
@@ -434,11 +456,13 @@ const Chat = (props: Props) => {
         );
 
         if (!response.ok) {
-          throw new Error("Failed to fetch weather data");
+          throw new Error("Failed to fetch dictionary data");
         }
+        // console.log("successfull request inside handleDictionary");
 
         const dictionaryData = await response.json();
-        console.log("dictionary Data:", dictionaryData);
+        // console.log("Response inside handleDictionary", dictionaryData);
+        // console.log("dictionary Data:", dictionaryData);
 
         dispatch(
           updateDictionary({
@@ -453,7 +477,7 @@ const Chat = (props: Props) => {
         throw new Error("Mode is not dictoionary");
       }
     } catch (error) {
-      console.error("Error fetching or processing dictionary data:", error);
+      console.log("Error fetching or processing dictionary data:", error);
       setError("Error fetching or processing dictionary data");
       setErrorFunction(() => handleDictionary.bind(null, word, chatIndex));
     }
@@ -467,7 +491,14 @@ const Chat = (props: Props) => {
         question: text,
         answer: "",
       };
+      // console.log("inside handleSend");
       dispatch(addChat({ threadId: id, chat: newChat }));
+      
+      // Add user message to conversation context
+      dispatch(addMessage({ 
+        threadId: id, 
+        message: { role: "user", content: text.trim() } 
+      }));
     }
   };
 

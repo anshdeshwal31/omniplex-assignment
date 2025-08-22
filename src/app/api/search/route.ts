@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const BING_API_KEY = process.env.BING_API_KEY;
-const BING_SEARCH_URL = "https://api.bing.microsoft.com/v7.0/search";
+const SERPAPI_KEY = process.env.SERPAPI_API_KEY;
+const SEARCH_URL = "https://serpapi.com/search.json";
 
 export const runtime = "edge";
 
@@ -18,35 +18,51 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  if (!BING_API_KEY) {
+  if (!SERPAPI_KEY) {
     console.error(
-      "Bing API key is undefined. Please check your .env.local file."
+      "SerpAPI key is undefined. Please check your .env.local file."
     );
     return new NextResponse(
-      JSON.stringify({ message: "Bing API key is not configured." }),
+      JSON.stringify({ message: "SerpAPI key is not configured." }),
       { status: 500 }
     );
   }
 
   try {
     const response = await fetch(
-      `${BING_SEARCH_URL}?q=${encodeURIComponent(q)}`,
+      `${SEARCH_URL}?q=${encodeURIComponent(q)}&engine=google&api_key=${SERPAPI_KEY}`,
       {
         method: "GET",
         headers: new Headers({
-          "Ocp-Apim-Subscription-Key": BING_API_KEY,
+          "Content-Type": "application/json",
         }),
       }
     );
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`API request failed with status ${response.status}`);
+      console.error(`Error response: ${errorText}`);
       throw new Error(`API request failed with status ${response.status}`);
     }
 
     const data = await response.json();
-    return NextResponse.json({ message: "Success", data });
+
+    // Transform SerpAPI response to match expected format
+    const transformedData = {
+      webPages: {
+        value: data.organic_results?.map((result: any) => ({
+          name: result.title,
+          url: result.link,
+          snippet: result.snippet,
+          displayUrl: result.displayed_link || result.link,
+        })) || []
+      }
+    };
+
+    return NextResponse.json({ message: "Success", data: transformedData });
   } catch (error) {
-    console.error("Bing API request error:", error);
+    console.error("Search API request error:", error);
     return new NextResponse(
       JSON.stringify({ message: "Internal Server Error" }),
       { status: 500 }

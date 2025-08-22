@@ -14,7 +14,7 @@ import { nanoid } from "nanoid";
 import { useRouter } from "next/navigation";
 import { useDisclosure } from "@nextui-org/modal";
 import { Popover, PopoverContent, PopoverTrigger } from "@nextui-org/popover";
-import { createChatThread } from "../../store/chatSlice";
+import { createChatThread, addMessage } from "../../store/chatSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUserDetailsState, selectAuthState } from "@/store/authSlice";
 import { db } from "../../../firebaseConfig";
@@ -96,9 +96,23 @@ const MainPrompt = () => {
           const batch = writeBatch(db);
           const historyRef = doc(db, "users", userId, "history", id);
           const indexRef = doc(db, "index", id);
+          
+          // Initialize conversation with proper message structure
+          const initialMessages = [
+            { role: "user", content: text.trim() }
+          ];
+          
+          // Add system message for chat mode
+          if (currentMode === "chat") {
+            initialMessages.unshift({ 
+              role: "system", 
+              content: "You are a helpful assistant." 
+            });
+          }
+          
           batch.set(historyRef, {
             chats: [chatObject],
-            messages: [],
+            messages: initialMessages,
             createdAt: new Date(),
           });
           batch.set(indexRef, { userId });
@@ -118,6 +132,19 @@ const MainPrompt = () => {
       }
 
       dispatch(createChatThread({ id, chat: chatObject }));
+      
+      // Add initial messages to Redux store as well
+      if (currentMode === "chat") {
+        dispatch(addMessage({ 
+          threadId: id, 
+          message: { role: "system", content: "You are a helpful assistant." } 
+        }));
+      }
+      dispatch(addMessage({ 
+        threadId: id, 
+        message: { role: "user", content: text.trim() } 
+      }));
+      
       router.push(`/chat/${id}`);
     } else return;
   };
