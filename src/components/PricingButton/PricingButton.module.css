@@ -34,13 +34,23 @@
 
 @media (max-width: 768px) {
   .pricingButton {
-    top: 10px;
-    right: 10px;
+    top: 20px;
+    right: 180px;
     padding: 10px 16px;
     font-size: 13px;
+    z-index: 999;
   }
   
   .text {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .pricingButton {
+    top: 15px;
+    right: 150px;
+    padding: 8px 12px;
+    font-size: 12px;
   }
 }

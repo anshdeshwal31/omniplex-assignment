@@ -3,6 +3,14 @@ import { stripe } from '@/utils/stripe-server';
 
 export async function GET(req: NextRequest) {
   try {
+    // Early return if Stripe is not initialized
+    if (!stripe) {
+      return NextResponse.json(
+        { error: 'Stripe is not configured' },
+        { status: 501 }
+      );
+    }
+
     const sessionId = req.nextUrl.searchParams.get('session_id');
 
     if (!sessionId) {
