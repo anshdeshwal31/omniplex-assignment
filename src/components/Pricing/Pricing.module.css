@@ -17,11 +17,11 @@
   padding: 2rem;
 }
 
-.pricing-card {
-  background: rgba(255, 255, 255, 0.95);
+ .pricing-card {
+  background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(10px);
   border-radius: 1.5rem;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.18);
   padding: 2.5rem;
   max-width: 420px;
   width: 100%;
@@ -29,6 +29,10 @@
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .pricing-card::before {
